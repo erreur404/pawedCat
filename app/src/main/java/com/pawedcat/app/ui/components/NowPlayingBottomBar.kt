@@ -2,8 +2,9 @@ package com.pawedcat.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -16,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.pawedcat.app.playback.AudioPlaybackManager
 import com.pawedcat.app.playback.model.SleepTimerMode
 
-@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlayingBottomBar(
     playbackManager: AudioPlaybackManager,
@@ -31,7 +32,7 @@ fun NowPlayingBottomBar(
     val currentPos = playbackState.currentPositionMs
     val duration = playbackState.durationMs
     val progress = if (duration > 0) (currentPos.toFloat() / duration).coerceIn(0f, 1f) else 0f
-    val speedSteps = listOf(1.0f, 1.2f, 1.5f, 1.75f, 2.0f, 2.5f)
+    val speedSteps = listOf(0.5f, 0.8f, 1.0f, 1.2f, 1.5f, 1.75f, 2.0f)
 
     Surface(
         modifier = modifier
@@ -184,40 +185,40 @@ fun NowPlayingBottomBar(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Playback Speed
+                // Playback Speed Buttons
                 val currentSpeed = playbackState.playbackSpeed
-                val currentSpeedIndex = speedSteps.indexOfFirst { it == currentSpeed }.coerceAtLeast(0)
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "Speed:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(end = 12.dp)
+                        text = "Speed",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    OutlinedButton(
-                        onClick = {
-                            val nextIndex = (currentSpeedIndex + 1) % speedSteps.size
-                            playbackManager.setPlaybackSpeed(speedSteps[nextIndex])
-                        },
+                    Row(
                         modifier = Modifier
-                            .combinedClickable(
-                                onClick = {
-                                    val nextIndex = (currentSpeedIndex + 1) % speedSteps.size
-                                    playbackManager.setPlaybackSpeed(speedSteps[nextIndex])
-                                },
-                                onLongClick = { playbackManager.setPlaybackSpeed(1.0f) }
-                            )
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val label = if (currentSpeed == currentSpeed.toLong().toFloat()) {
-                            "${currentSpeed.toInt()}×"
-                        } else {
-                            "${currentSpeed}×"
+                        speedSteps.forEach { speed ->
+                            val isSelected = currentSpeed == speed
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { playbackManager.setPlaybackSpeed(speed) },
+                                label = {
+                                    val label = if (speed == speed.toLong().toFloat()) {
+                                        "${speed.toInt()}x"
+                                    } else {
+                                        "${speed}x"
+                                    }
+                                    Text(label, style = MaterialTheme.typography.labelMedium)
+                                }
+                            )
                         }
-                        Text(label, style = MaterialTheme.typography.titleMedium)
                     }
                 }
 
