@@ -38,6 +38,10 @@ class ServiceLocator private constructor(context: Context) {
         com.pawedcat.app.data.feed.FeedManager(context)
     }
 
+    val playbackManager: com.pawedcat.app.playback.AudioPlaybackManager by lazy {
+        com.pawedcat.app.playback.AudioPlaybackManager(context)
+    }
+
     companion object {
         @Volatile
         private var INSTANCE: ServiceLocator? = null

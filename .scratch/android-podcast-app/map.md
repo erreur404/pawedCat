@@ -22,6 +22,7 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 - [01-project-scaffold-and-data-layer](./issues/01-project-scaffold-and-data-layer.md): Android Gradle project structure, Room database entities, DAOs with atomic transactions, repositories, and ServiceLocator.
 - [02-atomic-download-engine-and-worker](./issues/02-atomic-download-engine-and-worker.md): OkHttp atomic `.part` download engine, Content-Length & stream integrity checks, and WorkManager network constraint worker.
 - [03-rss-parser-and-directory-search](./issues/03-rss-parser-and-directory-search.md): XmlPullParser RSS/Atom engine, iTunes Search API client, OPML import, and FeedManager auto-download triggers.
+- [04-media3-audio-playback-service-and-queue](./issues/04-media3-audio-playback-service-and-queue.md): Media3 ExoPlayer service, single-queue mechanics, position persistence, completion cleanup, and zero-fade sleep timer.
 
 ## Not yet specified
 
