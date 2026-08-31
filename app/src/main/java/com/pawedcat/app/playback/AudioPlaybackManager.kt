@@ -41,6 +41,31 @@ class AudioPlaybackManager(
     private val _playbackState = MutableStateFlow(CurrentPlaybackState())
     val playbackState: StateFlow<CurrentPlaybackState> = _playbackState.asStateFlow()
 
+    // Must be declared before init{} so it is initialized before initPlayer() calls addListener()
+    private val playerListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            _playbackState.update { it.copy(isPlaying = isPlaying) }
+            if (isPlaying) {
+                startProgressTracker()
+            } else {
+                stopProgressTracker()
+            }
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            when (playbackState) {
+                Player.STATE_READY -> {
+                    val duration = exoPlayer?.duration?.coerceAtLeast(0L) ?: 0L
+                    _playbackState.update { it.copy(durationMs = duration) }
+                }
+                Player.STATE_ENDED -> {
+                    handleEpisodeCompleted()
+                }
+                else -> {}
+            }
+        }
+    }
+
     init {
         initPlayer()
         // Restore persisted playback speed
@@ -68,30 +93,6 @@ class AudioPlaybackManager(
     }
 
     fun getPlayer(): ExoPlayer? = exoPlayer
-
-    private val playerListener = object : Player.Listener {
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            _playbackState.update { it.copy(isPlaying = isPlaying) }
-            if (isPlaying) {
-                startProgressTracker()
-            } else {
-                stopProgressTracker()
-            }
-        }
-
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            when (playbackState) {
-                Player.STATE_READY -> {
-                    val duration = exoPlayer?.duration?.coerceAtLeast(0L) ?: 0L
-                    _playbackState.update { it.copy(durationMs = duration) }
-                }
-                Player.STATE_ENDED -> {
-                    handleEpisodeCompleted()
-                }
-                else -> {}
-            }
-        }
-    }
 
     fun playNow(episodeId: Long) {
         scope.launch {
