@@ -19,14 +19,20 @@ import com.pawedcat.app.data.local.entity.EpisodeEntity
 import kotlinx.coroutines.launch
 import java.io.File
 
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.platform.LocalContext
+import com.pawedcat.app.ui.util.ShareUtils
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadsScreen(
     serviceLocator: ServiceLocator
 ) {
     val episodeRepo = serviceLocator.episodeRepository
+    val podcastRepo = serviceLocator.podcastRepository
     val downloadManager = serviceLocator.downloadManager
     val playbackManager = serviceLocator.playbackManager
+    val context = LocalContext.current
 
     val downloadedEpisodes by episodeRepo.getDownloadedEpisodesFlow().collectAsState(initial = emptyList())
     val coroutineScope = rememberCoroutineScope()
@@ -73,6 +79,17 @@ fun DownloadsScreen(
                     DownloadedEpisodeCard(
                         episode = episode,
                         onPlay = { playbackManager.playNow(episode.id) },
+                        onShare = {
+                            coroutineScope.launch {
+                                val podcast = podcastRepo.getPodcastById(episode.podcastId)
+                                ShareUtils.shareEpisode(
+                                    context = context,
+                                    podcastTitle = podcast?.title ?: "",
+                                    episodeTitle = episode.title,
+                                    enclosureUrl = episode.enclosureUrl
+                                )
+                            }
+                        },
                         onDelete = {
                             coroutineScope.launch {
                                 downloadManager.deleteDownload(episode.id)
@@ -89,6 +106,7 @@ fun DownloadsScreen(
 private fun DownloadedEpisodeCard(
     episode: EpisodeEntity,
     onPlay: () -> Unit,
+    onShare: () -> Unit,
     onDelete: () -> Unit
 ) {
     val fileSizeMb = remember(episode.localFilePath) {
@@ -131,6 +149,9 @@ private fun DownloadedEpisodeCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onPlay) {
                     Icon(Icons.Default.PlayArrow, contentDescription = "Play", tint = MaterialTheme.colorScheme.primary)
+                }
+                IconButton(onClick = onShare) {
+                    Icon(Icons.Default.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete File", tint = MaterialTheme.colorScheme.error)

@@ -12,10 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.pawedcat.app.ServiceLocator
 import com.pawedcat.app.playback.AudioPlaybackManager
 import com.pawedcat.app.playback.model.SleepTimerMode
+import com.pawedcat.app.ui.util.ShareUtils
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,6 +29,8 @@ fun NowPlayingBottomBar(
 ) {
     val playbackState by playbackManager.playbackState.collectAsState()
     val episode = playbackState.currentEpisode ?: return
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     var showFullPlayer by remember { mutableStateOf(false) }
     var showSleepTimerDialog by remember { mutableStateOf(false) }
@@ -157,6 +163,23 @@ fun NowPlayingBottomBar(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                val podcastRepo = ServiceLocator.getInstance(context).podcastRepository
+                                val podcast = podcastRepo.getPodcastById(episode.podcastId)
+                                ShareUtils.shareEpisode(
+                                    context = context,
+                                    podcastTitle = podcast?.title ?: "",
+                                    episodeTitle = episode.title,
+                                    enclosureUrl = episode.enclosureUrl
+                                )
+                            }
+                        }
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = "Share", modifier = Modifier.size(28.dp))
+                    }
+
                     IconButton(onClick = { playbackManager.skipBackward(15) }) {
                         Icon(Icons.Default.Replay10, contentDescription = "Back 15s", modifier = Modifier.size(32.dp))
                     }

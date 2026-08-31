@@ -9,12 +9,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pawedcat.app.ServiceLocator
 import com.pawedcat.app.data.local.entity.DownloadStatus
 import com.pawedcat.app.data.local.entity.EpisodeEntity
 import com.pawedcat.app.ui.components.AutoDownloadRuleDialog
+import com.pawedcat.app.ui.util.ShareUtils
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -43,6 +45,7 @@ fun PodcastDetailScreen(
     var filterOnlyDownloaded by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val filteredEpisodes = remember(episodes, searchQuery, filterOnlyDownloaded) {
         episodes.filter { episode ->
@@ -68,6 +71,15 @@ fun PodcastDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = {
+                            if (podcast != null) {
+                                ShareUtils.sharePodcast(context, podcast!!.title, podcast!!.feedUrl)
+                            }
+                        }
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = "Share Podcast")
+                    }
                     IconButton(onClick = { showRuleDialog = true }) {
                         Icon(
                             Icons.Default.Tune,
@@ -173,6 +185,14 @@ fun PodcastDetailScreen(
                         onPlayNow = { playbackManager.playNow(episode.id) },
                         onPlayNext = { playbackManager.playNext(episode.id) },
                         onAddToQueue = { playbackManager.addToQueue(episode.id) },
+                        onShare = {
+                            ShareUtils.shareEpisode(
+                                context = context,
+                                podcastTitle = podcast?.title ?: "",
+                                episodeTitle = episode.title,
+                                enclosureUrl = episode.enclosureUrl
+                            )
+                        },
                         onDownload = {
                             coroutineScope.launch {
                                 downloadManager.enqueueDownload(episode.id)
@@ -213,6 +233,7 @@ private fun EpisodeCard(
     onPlayNow: () -> Unit,
     onPlayNext: () -> Unit,
     onAddToQueue: () -> Unit,
+    onShare: () -> Unit,
     onDownload: () -> Unit,
     onDeleteDownload: () -> Unit
 ) {
@@ -294,6 +315,13 @@ private fun EpisodeCard(
                                 text = { Text("Add to Queue") },
                                 onClick = {
                                     onAddToQueue()
+                                    showMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Share") },
+                                onClick = {
+                                    onShare()
                                     showMenu = false
                                 }
                             )

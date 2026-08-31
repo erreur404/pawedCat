@@ -28,6 +28,7 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 - [07-opml-export](./issues/07-opml-export.md): `OpmlExporter` writes OPML 2.0 via platform `XmlSerializer`; Settings Export card uses SAF `CreateDocument` for pick-and-save.
 - [08-per-podcast-volume-boost](./issues/08-per-podcast-volume-boost.md): Per-podcast volume boost using Android DSP `LoudnessEnhancer` (0 dB to +10 dB slider in Podcast Settings dialog).
 - [09-podcast-downloaded-episodes-filter](./issues/09-podcast-downloaded-episodes-filter.md): Dedicated 1-tap `DownloadDone` toggle button on the podcast details screen to filter and view only downloaded episodes.
+- [10-podcast-and-episode-sharing](./issues/10-podcast-and-episode-sharing.md): Universal plain-text episode sharing with direct audio URLs and podcast feed sharing with PawedCat signature.
 
 ## Not yet specified
 
