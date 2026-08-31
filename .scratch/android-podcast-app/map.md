@@ -24,12 +24,12 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 - [03-rss-parser-and-directory-search](./issues/03-rss-parser-and-directory-search.md): XmlPullParser RSS/Atom engine, iTunes Search API client, OPML import, and FeedManager auto-download triggers.
 - [04-media3-audio-playback-service-and-queue](./issues/04-media3-audio-playback-service-and-queue.md): Media3 ExoPlayer service, single-queue mechanics, position persistence, completion cleanup, and zero-fade sleep timer.
 - [05-compose-ui-and-regex-auto-download](./issues/05-compose-ui-and-regex-auto-download.md): Jetpack Compose text-first UI, bottom player sheet, sleep timer modal, auto-download regex dialog, OPML import, and intent filter deep linking.
+- [06-variable-playback-speed](./issues/06-variable-playback-speed.md): ExoPlayer `PlaybackParameters` speed cycling (1.0×–2.5×), persisted in DataStore, surfaced as tap-to-cycle / long-press-to-reset button in the full-player sheet.
+- [07-opml-export](./issues/07-opml-export.md): `OpmlExporter` writes OPML 2.0 via platform `XmlSerializer`; Settings Export card uses SAF `CreateDocument` for pick-and-save.
 
 ## Not yet specified
 
 - **Android Auto / MediaBrowser support**: Extending MediaSession to car head units if requested.
-- **Variable playback speed**: Pitch-corrected speed stepping (1.0x to 2.5x).
-- **OPML bulk export/backup**: One-click export of subscribed feeds to an OPML file.
 
 ## Out of scope
 

@@ -45,21 +45,38 @@ class RssFeedParser {
                 "channel" -> {
                     // RSS channel
                 }
-                "title" if (feedTitle.isEmpty()) -> {
-                    feedTitle = readText(parser)
-                }
-                "description" if (feedDescription.isEmpty()) -> {
-                    feedDescription = readText(parser)
-                }
-                "itunes:author", "author" if (feedAuthor.isEmpty()) -> {
-                    feedAuthor = readText(parser)
-                }
-                "link" if (feedWebsite.isEmpty()) -> {
-                    val href = parser.getAttributeValue(null, "href")
-                    if (!href.isNullOrBlank()) {
-                        feedWebsite = href
+                "title" -> {
+                    if (feedTitle.isEmpty()) {
+                        feedTitle = readText(parser)
                     } else {
-                        feedWebsite = readText(parser)
+                        skip(parser)
+                    }
+                }
+                "description" -> {
+                    if (feedDescription.isEmpty()) {
+                        feedDescription = readText(parser)
+                    } else {
+                        skip(parser)
+                    }
+                }
+                "itunes:author", "author" -> {
+                    if (feedAuthor.isEmpty()) {
+                        feedAuthor = readText(parser)
+                    } else {
+                        skip(parser)
+                    }
+                }
+                "link" -> {
+                    if (feedWebsite.isEmpty()) {
+                        val href = parser.getAttributeValue(null, "href")
+                        if (!href.isNullOrBlank()) {
+                            feedWebsite = href
+                            parser.nextTag()
+                        } else {
+                            feedWebsite = readText(parser)
+                        }
+                    } else {
+                        skip(parser)
                     }
                 }
                 "item", "entry" -> {

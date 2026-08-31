@@ -6,6 +6,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.pawedcat.app.ServiceLocator
@@ -19,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -41,6 +43,14 @@ class AudioPlaybackManager(
 
     init {
         initPlayer()
+        // Restore persisted playback speed
+        scope.launch {
+            val savedSpeed = serviceLocator.settingsRepository.playbackSpeedFlow.first()
+            if (savedSpeed != 1.0f) {
+                exoPlayer?.setPlaybackParameters(PlaybackParameters(savedSpeed))
+                _playbackState.update { it.copy(playbackSpeed = savedSpeed) }
+            }
+        }
     }
 
     private fun initPlayer() {
@@ -311,6 +321,15 @@ class AudioPlaybackManager(
         sleepTimerJob = null
         _playbackState.update {
             it.copy(sleepTimerMode = SleepTimerMode.Off)
+        }
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        val clamped = speed.coerceIn(0.5f, 3.0f)
+        exoPlayer?.setPlaybackParameters(PlaybackParameters(clamped))
+        _playbackState.update { it.copy(playbackSpeed = clamped) }
+        scope.launch(Dispatchers.IO) {
+            serviceLocator.settingsRepository.setPlaybackSpeed(clamped)
         }
     }
 

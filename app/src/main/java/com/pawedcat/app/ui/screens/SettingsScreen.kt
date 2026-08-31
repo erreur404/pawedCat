@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.pawedcat.app.ServiceLocator
+import com.pawedcat.app.data.feed.OpmlExporter
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +28,7 @@ fun SettingsScreen(
 ) {
     val settingsRepo = serviceLocator.settingsRepository
     val feedManager = serviceLocator.feedManager
+    val podcastRepo = serviceLocator.podcastRepository
     val context = LocalContext.current
 
     val wifiOnly by settingsRepo.downloadOnWifiOnlyFlow.collectAsState(initial = true)
@@ -34,6 +37,8 @@ fun SettingsScreen(
     val coroutineScope = rememberCoroutineScope()
     var importStatusMessage by remember { mutableStateOf<String?>(null) }
     var isImporting by remember { mutableStateOf(false) }
+    var exportStatusMessage by remember { mutableStateOf<String?>(null) }
+    var isExporting by remember { mutableStateOf(false) }
 
     val opmlLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -59,6 +64,32 @@ fun SettingsScreen(
                     importStatusMessage = "Import failed: ${e.message}"
                 } finally {
                     isImporting = false
+                }
+            }
+        }
+    }
+
+    val opmlExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/x-opml")
+    ) { uri: Uri? ->
+        if (uri != null) {
+            coroutineScope.launch {
+                isExporting = true
+                exportStatusMessage = null
+                try {
+                    val podcasts = podcastRepo.getAllPodcasts()
+                    val stream = context.contentResolver.openOutputStream(uri)
+                    if (stream != null) {
+                        OpmlExporter().export(podcasts, stream)
+                        stream.close()
+                        exportStatusMessage = "Exported ${podcasts.size} podcast${if (podcasts.size == 1) "" else "s"}"
+                    } else {
+                        exportStatusMessage = "Could not open file for writing"
+                    }
+                } catch (e: Exception) {
+                    exportStatusMessage = "Export failed: ${e.message}"
+                } finally {
+                    isExporting = false
                 }
             }
         }
@@ -164,6 +195,54 @@ fun SettingsScreen(
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                         } else {
                             Text("Select OPML File")
+                        }
+                    }
+                }
+            }
+
+            // OPML Export
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(Icons.Default.FileUpload, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Column {
+                            Text("Export Subscriptions (OPML)", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "Back up feeds — import on any app that supports OPML",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    if (exportStatusMessage != null) {
+                        Text(
+                            text = exportStatusMessage!!,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = { opmlExportLauncher.launch("pawedcat-subscriptions.opml") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isExporting
+                    ) {
+                        if (isExporting) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        } else {
+                            Text("Export to OPML File")
                         }
                     }
                 }

@@ -59,7 +59,7 @@ fun SleepTimerDialog(
                     ) {
                         Text("Turn Off Sleep Timer")
                     }
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 }
 
                 val presets = listOf(15, 30, 45, 60)
@@ -99,7 +99,7 @@ fun SleepTimerDialog(
                     )
                 }
 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

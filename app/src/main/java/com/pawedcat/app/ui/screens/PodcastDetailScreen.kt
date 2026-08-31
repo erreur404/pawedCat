@@ -275,7 +275,7 @@ private fun EpisodeCard(
                     DownloadStatus.DOWNLOADING, DownloadStatus.QUEUED -> {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator(
-                                progress = (episode.downloadProgress / 100f).coerceIn(0f, 1f),
+                                progress = { (episode.downloadProgress / 100f).coerceIn(0f, 1f) },
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp
                             )

@@ -2,6 +2,7 @@ package com.pawedcat.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.pawedcat.app.playback.AudioPlaybackManager
 import com.pawedcat.app.playback.model.SleepTimerMode
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun NowPlayingBottomBar(
     playbackManager: AudioPlaybackManager,
@@ -30,6 +31,7 @@ fun NowPlayingBottomBar(
     val currentPos = playbackState.currentPositionMs
     val duration = playbackState.durationMs
     val progress = if (duration > 0) (currentPos.toFloat() / duration).coerceIn(0f, 1f) else 0f
+    val speedSteps = listOf(1.0f, 1.2f, 1.5f, 1.75f, 2.0f, 2.5f)
 
     Surface(
         modifier = modifier
@@ -41,7 +43,7 @@ fun NowPlayingBottomBar(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             LinearProgressIndicator(
-                progress = progress,
+                progress = { progress },
                 modifier = Modifier.fillMaxWidth().height(3.dp),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
@@ -181,6 +183,43 @@ fun NowPlayingBottomBar(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
+
+                // Playback Speed
+                val currentSpeed = playbackState.playbackSpeed
+                val currentSpeedIndex = speedSteps.indexOfFirst { it == currentSpeed }.coerceAtLeast(0)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Speed:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(end = 12.dp)
+                    )
+                    OutlinedButton(
+                        onClick = {
+                            val nextIndex = (currentSpeedIndex + 1) % speedSteps.size
+                            playbackManager.setPlaybackSpeed(speedSteps[nextIndex])
+                        },
+                        modifier = Modifier
+                            .combinedClickable(
+                                onClick = {
+                                    val nextIndex = (currentSpeedIndex + 1) % speedSteps.size
+                                    playbackManager.setPlaybackSpeed(speedSteps[nextIndex])
+                                },
+                                onLongClick = { playbackManager.setPlaybackSpeed(1.0f) }
+                            )
+                    ) {
+                        val label = if (currentSpeed == currentSpeed.toLong().toFloat()) {
+                            "${currentSpeed.toInt()}×"
+                        } else {
+                            "${currentSpeed}×"
+                        }
+                        Text(label, style = MaterialTheme.typography.titleMedium)
+                    }
+                }
 
                 // Sleep Timer button
                 OutlinedButton(

@@ -13,5 +13,6 @@ data class CurrentPlaybackState(
     val isPlaying: Boolean = false,
     val currentPositionMs: Long = 0L,
     val durationMs: Long = 0L,
-    val sleepTimerMode: SleepTimerMode = SleepTimerMode.Off
+    val sleepTimerMode: SleepTimerMode = SleepTimerMode.Off,
+    val playbackSpeed: Float = 1.0f
 )
