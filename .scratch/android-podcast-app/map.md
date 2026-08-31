@@ -31,6 +31,8 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 - [10-podcast-and-episode-sharing](./issues/10-podcast-and-episode-sharing.md): Universal plain-text episode sharing with direct audio URLs and podcast feed sharing with PawedCat signature.
 - [11-voice-assistant-playback-integration](./issues/11-voice-assistant-playback-integration.md): Google Assistant / Gemini voice search & playback integration (`MEDIA_PLAY_FROM_SEARCH`).
 - [12-github-ci-release-pipeline](./issues/12-github-ci-release-pipeline.md): GitHub Actions CI workflow to build release APKs and publish GitHub Releases on tags.
+- [13-core-user-flows-test-suite](./issues/13-core-user-flows-test-suite.md): Fast local Robolectric/Compose UI tests + real Android Emulator CI runner.
+- [14-weekly-dependency-and-security-cron](./issues/14-weekly-dependency-and-security-cron.md): Weekly dependency update cron enforcing 7-day quarantine with automated issue alerts.
 
 ## Not yet specified
 

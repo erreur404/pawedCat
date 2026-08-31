@@ -1,0 +1,54 @@
+name: Weekly Dependency & Security Check
+
+on:
+  schedule:
+    # Runs every Monday at 04:00 UTC
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  dependency-security-check:
+    name: Check Dependencies (>7d Quarantine) & Verify Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant Execute Permission to Gradlew
+        run: chmod +x gradlew
+
+      - name: Enforce 7-Day Supply Chain Quarantine & Run Unit/UI Tests
+        id: test_step
+        run: |
+          echo "Running test suite against current verified dependency baseline..."
+          ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Verify Release Compilation
+        id: build_step
+        run: |
+          echo "Compiling release build to check for API deprecations or incompatibilities..."
+          ./gradlew assembleRelease --stacktrace
+
+      - name: Automated Issue on Failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "⚠️ Weekly Dependency / Build Alert: $(date +'%Y-%m-%d')" \
+            --body "The scheduled weekly dependency & build verification pipeline failed. Please review the workflow logs to verify if an upstream library update or environment change broke tests or release compilation."
