@@ -30,6 +30,7 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 - [09-podcast-downloaded-episodes-filter](./issues/09-podcast-downloaded-episodes-filter.md): Dedicated 1-tap `DownloadDone` toggle button on the podcast details screen to filter and view only downloaded episodes.
 - [10-podcast-and-episode-sharing](./issues/10-podcast-and-episode-sharing.md): Universal plain-text episode sharing with direct audio URLs and podcast feed sharing with PawedCat signature.
 - [11-voice-assistant-playback-integration](./issues/11-voice-assistant-playback-integration.md): Google Assistant / Gemini voice search & playback integration (`MEDIA_PLAY_FROM_SEARCH`).
+- [12-github-ci-release-pipeline](./issues/12-github-ci-release-pipeline.md): GitHub Actions CI workflow to build release APKs and publish GitHub Releases on tags.
 
 ## Not yet specified
 
