@@ -33,6 +33,9 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE podcastId = :podcastId AND guid = :guid LIMIT 1")
     suspend fun getEpisodeByGuid(podcastId: Long, guid: String): EpisodeEntity?
 
+    @Query("SELECT * FROM episodes WHERE title LIKE '%' || :query || '%' ORDER BY pubDate DESC LIMIT 10")
+    suspend fun searchEpisodes(query: String): List<EpisodeEntity>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertEpisode(episode: EpisodeEntity): Long
 

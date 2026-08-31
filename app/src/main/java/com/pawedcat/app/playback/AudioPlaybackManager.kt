@@ -115,6 +115,71 @@ class AudioPlaybackManager(
         }
     }
 
+    suspend fun playFromVoiceQuery(query: String?) {
+        val cleanQuery = query?.trim()
+
+        // 1. If query is blank/empty: resume active or play top of queue / recent download
+        if (cleanQuery.isNullOrBlank()) {
+            val currentEp = _playbackState.value.currentEpisode
+            if (currentEp != null) {
+                if (!_playbackState.value.isPlaying) {
+                    togglePlayPause()
+                }
+                return
+            }
+            val queueItems = queueRepo.getQueueItems()
+            if (queueItems.isNotEmpty()) {
+                playNow(queueItems.first().episodeId)
+                return
+            }
+            val downloaded = episodeRepo.getDownloadedEpisodes()
+            if (downloaded.isNotEmpty()) {
+                playNow(downloaded.first().id)
+                return
+            }
+            return
+        }
+
+        // 2. Check for matching subscribed podcast by title or author
+        val podcasts = podcastRepo.getAllPodcasts()
+        val matchedPodcast = podcasts.firstOrNull {
+            it.title.contains(cleanQuery, ignoreCase = true) || it.author.contains(cleanQuery, ignoreCase = true)
+        }
+
+        if (matchedPodcast != null) {
+            val episodes = episodeRepo.getEpisodesForPodcast(matchedPodcast.id)
+            val latest = episodes.maxByOrNull { it.pubDate }
+            if (latest != null) {
+                playNow(latest.id)
+                return
+            }
+        }
+
+        // 3. Check for matching episode by title in local library
+        val matchedEpisodes = episodeRepo.searchEpisodes(cleanQuery)
+        if (matchedEpisodes.isNotEmpty()) {
+            playNow(matchedEpisodes.first().id)
+            return
+        }
+
+        // 4. Fallback: Search online directory, subscribe and play hands-free
+        try {
+            val searchResults = serviceLocator.feedManager.searchDirectory(cleanQuery)
+            if (searchResults.isNotEmpty()) {
+                val bestMatch = searchResults.first()
+                val subResult = serviceLocator.feedManager.subscribeToFeed(bestMatch.feedUrl)
+                if (subResult.isSuccess) {
+                    val newPodcast = subResult.getOrThrow()
+                    val episodes = episodeRepo.getEpisodesForPodcast(newPodcast.id)
+                    val latest = episodes.maxByOrNull { it.pubDate }
+                    if (latest != null) {
+                        playNow(latest.id)
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
     fun togglePlayPause() {
         exoPlayer?.let { player ->
             if (player.isPlaying) {

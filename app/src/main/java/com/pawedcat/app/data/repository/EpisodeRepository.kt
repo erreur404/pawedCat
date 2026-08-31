@@ -14,6 +14,7 @@ interface EpisodeRepository {
     suspend fun getEpisodeById(id: Long): EpisodeEntity?
     fun getEpisodeByIdFlow(id: Long): Flow<EpisodeEntity?>
     suspend fun getEpisodeByGuid(podcastId: Long, guid: String): EpisodeEntity?
+    suspend fun searchEpisodes(query: String): List<EpisodeEntity>
     suspend fun insertEpisode(episode: EpisodeEntity): Long
     suspend fun insertEpisodes(episodes: List<EpisodeEntity>): List<Long>
     suspend fun updateEpisode(episode: EpisodeEntity)
@@ -53,6 +54,9 @@ class EpisodeRepositoryImpl(
 
     override suspend fun getEpisodeByGuid(podcastId: Long, guid: String): EpisodeEntity? =
         episodeDao.getEpisodeByGuid(podcastId, guid)
+
+    override suspend fun searchEpisodes(query: String): List<EpisodeEntity> =
+        episodeDao.searchEpisodes(query)
 
     override suspend fun insertEpisode(episode: EpisodeEntity): Long =
         episodeDao.insertEpisode(episode)
