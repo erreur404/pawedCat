@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">PawedCat</string>
+    <string name="podcasts_title">Podcasts</string>
+    <string name="queue_title">Queue</string>
+    <string name="downloads_title">Downloads</string>
+    <string name="settings_title">Settings</string>
+    <string name="search_hint">Search podcasts or enter RSS URL…</string>
+    <string name="add_podcast">Add Podcast</string>
+    <string name="play_now">Play Now</string>
+    <string name="play_next">Play Next</string>
+    <string name="add_to_queue">Add to Queue</string>
+    <string name="download_episode">Download</string>
+    <string name="delete_download">Delete File</string>
+    <string name="auto_download_rule">Auto-Download Rule</string>
+    <string name="regex_hint">Positive Regex (e.g. .* or Bonus|Interview)</string>
+    <string name="max_recent_count">Max recent episodes to keep</string>
+    <string name="sleep_timer">Sleep Timer</string>
+    <string name="end_of_episode">End of episode</string>
+    <string name="download_wifi_only">Download on Wi-Fi only</string>
+</resources>

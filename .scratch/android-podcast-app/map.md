@@ -18,7 +18,8 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 
 ## Decisions so far
 
-<!-- the index: one line per closed ticket, enough to judge relevance, then zoom the link for the detail the ticket holds -->
+- [00-generate-app-icon](./issues/00-generate-app-icon.md): Generated 3-color manga calico cat icon wearing headphones for launcher and Play Store.
+- [01-project-scaffold-and-data-layer](./issues/01-project-scaffold-and-data-layer.md): Android Gradle project structure, Room database entities, DAOs with atomic transactions, repositories, and ServiceLocator.
 
 ## Not yet specified
 
