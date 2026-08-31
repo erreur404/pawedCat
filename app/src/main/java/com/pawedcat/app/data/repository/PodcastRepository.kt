@@ -21,6 +21,7 @@ interface PodcastRepository {
     suspend fun getActiveRules(): List<AutoDownloadRuleEntity>
     suspend fun saveAutoDownloadRule(rule: AutoDownloadRuleEntity)
     suspend fun deleteAutoDownloadRule(podcastId: Long)
+    suspend fun updateVolumeBoost(podcastId: Long, volumeBoostDb: Int)
 }
 
 class PodcastRepositoryImpl(
@@ -61,4 +62,7 @@ class PodcastRepositoryImpl(
 
     override suspend fun deleteAutoDownloadRule(podcastId: Long) =
         autoDownloadRuleDao.deleteRuleForPodcast(podcastId)
+
+    override suspend fun updateVolumeBoost(podcastId: Long, volumeBoostDb: Int) =
+        podcastDao.updateVolumeBoost(podcastId, volumeBoostDb)
 }

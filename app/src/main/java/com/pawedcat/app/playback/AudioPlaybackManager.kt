@@ -33,8 +33,10 @@ class AudioPlaybackManager(
     private val serviceLocator = ServiceLocator.getInstance(context)
     private val episodeRepo = serviceLocator.episodeRepository
     private val queueRepo = serviceLocator.queueRepository
+    private val podcastRepo = serviceLocator.podcastRepository
 
     private var exoPlayer: ExoPlayer? = null
+    private var loudnessEnhancer: android.media.audiofx.LoudnessEnhancer? = null
     private var progressTrackingJob: Job? = null
     private var sleepTimerJob: Job? = null
 
@@ -188,6 +190,10 @@ class AudioPlaybackManager(
         player.setMediaItem(mediaItem)
         player.prepare()
 
+        // Apply per-podcast volume boost
+        val podcast = podcastRepo.getPodcastById(episode.podcastId)
+        applyVolumeBoost(podcast?.volumeBoostDb ?: 0)
+
         // Resume from saved position if valid (< 95% of duration)
         val resumePos = if (episode.durationMs > 0 && episode.playbackPositionMs >= (episode.durationMs * 0.95)) {
             0L
@@ -334,9 +340,37 @@ class AudioPlaybackManager(
         }
     }
 
+    private fun applyVolumeBoost(boostDb: Int) {
+        val player = exoPlayer ?: return
+        try {
+            val sessionId = player.audioSessionId
+            if (sessionId == C.AUDIO_SESSION_ID_UNSET) return
+
+            if (loudnessEnhancer == null) {
+                loudnessEnhancer = android.media.audiofx.LoudnessEnhancer(sessionId)
+            }
+            val gainMb = (boostDb.coerceIn(0, 10) * 100) // 1 dB = 100 mB
+            loudnessEnhancer?.setTargetGain(gainMb)
+            loudnessEnhancer?.enabled = (boostDb > 0)
+        } catch (_: Exception) {
+            // Audio effect may fail if unsupported on device or session transitioning
+        }
+    }
+
+    fun onPodcastVolumeBoostChanged(podcastId: Long, boostDb: Int) {
+        val currentEpisode = _playbackState.value.currentEpisode
+        if (currentEpisode != null && currentEpisode.podcastId == podcastId) {
+            applyVolumeBoost(boostDb)
+        }
+    }
+
     fun release() {
         stopProgressTracker()
         cancelSleepTimer()
+        try {
+            loudnessEnhancer?.release()
+        } catch (_: Exception) {}
+        loudnessEnhancer = null
         exoPlayer?.release()
         exoPlayer = null
     }

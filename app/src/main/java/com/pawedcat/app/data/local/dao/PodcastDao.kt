@@ -37,4 +37,7 @@ interface PodcastDao {
 
     @Query("DELETE FROM podcasts WHERE id = :id")
     suspend fun deletePodcastById(id: Long)
+
+    @Query("UPDATE podcasts SET volumeBoostDb = :volumeBoostDb WHERE id = :podcastId")
+    suspend fun updateVolumeBoost(podcastId: Long, volumeBoostDb: Int)
 }

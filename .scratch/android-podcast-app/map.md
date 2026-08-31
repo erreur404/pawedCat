@@ -26,6 +26,7 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 - [05-compose-ui-and-regex-auto-download](./issues/05-compose-ui-and-regex-auto-download.md): Jetpack Compose text-first UI, bottom player sheet, sleep timer modal, auto-download regex dialog, OPML import, and intent filter deep linking.
 - [06-variable-playback-speed](./issues/06-variable-playback-speed.md): ExoPlayer `PlaybackParameters` speed cycling (1.0×–2.5×), persisted in DataStore, surfaced as tap-to-cycle / long-press-to-reset button in the full-player sheet.
 - [07-opml-export](./issues/07-opml-export.md): `OpmlExporter` writes OPML 2.0 via platform `XmlSerializer`; Settings Export card uses SAF `CreateDocument` for pick-and-save.
+- [08-per-podcast-volume-boost](./issues/08-per-podcast-volume-boost.md): Per-podcast volume boost using Android DSP `LoudnessEnhancer` (0 dB to +10 dB slider in Podcast Settings dialog).
 
 ## Not yet specified
 

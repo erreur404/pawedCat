@@ -17,5 +17,6 @@ data class PodcastEntity(
     val description: String = "",
     val websiteUrl: String = "",
     val subscribedAt: Long = System.currentTimeMillis(),
-    val lastRefreshedAt: Long = 0L
+    val lastRefreshedAt: Long = 0L,
+    val volumeBoostDb: Int = 0
 )

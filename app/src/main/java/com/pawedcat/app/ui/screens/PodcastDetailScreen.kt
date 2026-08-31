@@ -67,8 +67,8 @@ fun PodcastDetailScreen(
                     IconButton(onClick = { showRuleDialog = true }) {
                         Icon(
                             Icons.Default.Tune,
-                            contentDescription = "Auto-Download Rule",
-                            tint = if (autoDownloadRule?.isEnabled == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            contentDescription = "Podcast Settings",
+                            tint = if (autoDownloadRule?.isEnabled == true || (podcast?.volumeBoostDb ?: 0) > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     IconButton(
@@ -106,9 +106,16 @@ fun PodcastDetailScreen(
                     )
                 }
 
+                val statusNotes = mutableListOf<String>()
                 if (autoDownloadRule?.isEnabled == true) {
+                    statusNotes.add("Auto-Download: regex \"${autoDownloadRule!!.positiveRegex}\" (${autoDownloadRule!!.maxRecentCount})")
+                }
+                if ((podcast?.volumeBoostDb ?: 0) > 0) {
+                    statusNotes.add("Boost: +${podcast!!.volumeBoostDb} dB")
+                }
+                if (statusNotes.isNotEmpty()) {
                     Text(
-                        text = "Auto-Download: regex \"${autoDownloadRule!!.positiveRegex}\" (top ${autoDownloadRule!!.maxRecentCount})",
+                        text = statusNotes.joinToString(" • "),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -160,10 +167,13 @@ fun PodcastDetailScreen(
         AutoDownloadRuleDialog(
             podcastTitle = podcast!!.title,
             initialRule = autoDownloadRule,
+            initialVolumeBoostDb = podcast!!.volumeBoostDb,
             podcastId = podcastId,
-            onSaveRule = { rule ->
+            onSave = { rule, boostDb ->
                 coroutineScope.launch {
                     podcastRepo.saveAutoDownloadRule(rule)
+                    podcastRepo.updateVolumeBoost(podcastId, boostDb)
+                    playbackManager.onPodcastVolumeBoostChanged(podcastId, boostDb)
                 }
             },
             onDismiss = { showRuleDialog = false }
