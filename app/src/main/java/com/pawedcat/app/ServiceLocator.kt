@@ -34,6 +34,10 @@ class ServiceLocator private constructor(context: Context) {
         com.pawedcat.app.data.download.PodcastDownloadManager(context)
     }
 
+    val feedManager: com.pawedcat.app.data.feed.FeedManager by lazy {
+        com.pawedcat.app.data.feed.FeedManager(context)
+    }
+
     companion object {
         @Volatile
         private var INSTANCE: ServiceLocator? = null

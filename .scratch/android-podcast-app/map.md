@@ -20,6 +20,8 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 
 - [00-generate-app-icon](./issues/00-generate-app-icon.md): Generated 3-color manga calico cat icon wearing headphones for launcher and Play Store.
 - [01-project-scaffold-and-data-layer](./issues/01-project-scaffold-and-data-layer.md): Android Gradle project structure, Room database entities, DAOs with atomic transactions, repositories, and ServiceLocator.
+- [02-atomic-download-engine-and-worker](./issues/02-atomic-download-engine-and-worker.md): OkHttp atomic `.part` download engine, Content-Length & stream integrity checks, and WorkManager network constraint worker.
+- [03-rss-parser-and-directory-search](./issues/03-rss-parser-and-directory-search.md): XmlPullParser RSS/Atom engine, iTunes Search API client, OPML import, and FeedManager auto-download triggers.
 
 ## Not yet specified
 
