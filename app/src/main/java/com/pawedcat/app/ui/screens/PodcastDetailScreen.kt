@@ -40,12 +40,16 @@ fun PodcastDetailScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     var showRuleDialog by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    var filterOnlyDownloaded by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
 
-    val filteredEpisodes = remember(episodes, searchQuery) {
-        if (searchQuery.isBlank()) episodes
-        else episodes.filter { it.title.contains(searchQuery, ignoreCase = true) }
+    val filteredEpisodes = remember(episodes, searchQuery, filterOnlyDownloaded) {
+        episodes.filter { episode ->
+            val matchesQuery = searchQuery.isBlank() || episode.title.contains(searchQuery, ignoreCase = true)
+            val matchesDownloaded = !filterOnlyDownloaded || episode.downloadStatus == DownloadStatus.DOWNLOADED
+            matchesQuery && matchesDownloaded
+        }
     }
 
     Scaffold(
@@ -123,14 +127,36 @@ fun PodcastDetailScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text("Filter episodes…") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Filter episodes…") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+
+                    FilledIconToggleButton(
+                        checked = filterOnlyDownloaded,
+                        onCheckedChange = { filterOnlyDownloaded = it },
+                        colors = IconButtonDefaults.filledIconToggleButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            checkedContentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.DownloadDone,
+                            contentDescription = if (filterOnlyDownloaded) "Showing downloaded only" else "Filter downloaded"
+                        )
+                    }
+                }
             }
 
             LazyColumn(
