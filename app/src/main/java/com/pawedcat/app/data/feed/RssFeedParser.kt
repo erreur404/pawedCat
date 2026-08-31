@@ -4,7 +4,6 @@ import android.util.Xml
 import com.pawedcat.app.data.feed.model.ParsedEpisode
 import com.pawedcat.app.data.feed.model.ParsedFeed
 import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserException
 import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -43,7 +42,7 @@ class RssFeedParser {
             val name = parser.name?.lowercase() ?: ""
             when (name) {
                 "channel" -> {
-                    // RSS channel
+                    // RSS channel — descend into it
                 }
                 "title" -> {
                     if (feedTitle.isEmpty()) {
@@ -71,7 +70,7 @@ class RssFeedParser {
                         val href = parser.getAttributeValue(null, "href")
                         if (!href.isNullOrBlank()) {
                             feedWebsite = href
-                            parser.nextTag()
+                            skipToEndTag(parser)   // <link href="..."/> may have text or be self-closing
                         } else {
                             feedWebsite = readText(parser)
                         }
@@ -86,7 +85,7 @@ class RssFeedParser {
                     }
                 }
                 else -> {
-                    // Continue scanning
+                    // Unknown element — skip over it entirely
                 }
             }
         }
@@ -147,7 +146,8 @@ class RssFeedParser {
                             enclosureLength = length
                             enclosureType = type
                         }
-                        parser.nextTag()
+                        // <enclosure> may be self-closing OR contain text — consume safely
+                        skipToEndTag(parser)
                     }
                     "link" -> {
                         val rel = parser.getAttributeValue(null, "rel")
@@ -157,7 +157,8 @@ class RssFeedParser {
                             enclosureLength = parser.getAttributeValue(null, "length")?.toLongOrNull() ?: 0L
                             enclosureType = parser.getAttributeValue(null, "type") ?: "audio/mpeg"
                         }
-                        parser.nextTag()
+                        // <link> often contains a bare URL as text — must NOT call nextTag() here
+                        skipToEndTag(parser)
                     }
                     "itunes:duration", "duration" -> {
                         val durationStr = readText(parser)
@@ -187,26 +188,55 @@ class RssFeedParser {
         )
     }
 
+    /**
+     * Reads text (and CDATA) content of the current element, ignoring nested tags.
+     * Leaves the parser positioned after the element's closing END_TAG.
+     * Never calls nextTag() — safe for any content including bare URLs.
+     */
     private fun readText(parser: XmlPullParser): String {
-        var result = ""
-        if (parser.next() == XmlPullParser.TEXT) {
-            result = parser.text ?: ""
-            parser.nextTag()
-        }
-        return result
-    }
-
-    private fun skip(parser: XmlPullParser) {
-        if (parser.eventType != XmlPullParser.START_TAG) {
-            throw IllegalStateException()
-        }
+        val sb = StringBuilder()
         var depth = 1
-        while (depth != 0) {
-            when (parser.next()) {
-                XmlPullParser.END_TAG -> depth--
+        while (depth > 0) {
+            val eventType = parser.next()
+            when (eventType) {
+                XmlPullParser.TEXT, XmlPullParser.CDSECT -> {
+                    if (depth == 1) sb.append(parser.text ?: "")
+                }
                 XmlPullParser.START_TAG -> depth++
+                XmlPullParser.END_TAG -> depth--
+                XmlPullParser.END_DOCUMENT -> return sb.toString()
             }
         }
+        return sb.toString()
+    }
+
+    /**
+     * Consumes all content up to and including the END_TAG that closes the current element.
+     * Safe even if element has text content, CDATA, nested children, or is self-closing.
+     * No-op if parser is already past the element (END_TAG or END_DOCUMENT).
+     */
+    private fun skipToEndTag(parser: XmlPullParser) {
+        if (parser.eventType == XmlPullParser.END_TAG ||
+            parser.eventType == XmlPullParser.END_DOCUMENT
+        ) return
+        var depth = 1
+        while (depth > 0) {
+            when (parser.next()) {
+                XmlPullParser.START_TAG -> depth++
+                XmlPullParser.END_TAG -> depth--
+                XmlPullParser.END_DOCUMENT -> return
+            }
+        }
+    }
+
+    /**
+     * Skips a START_TAG and all its children. Requires current event == START_TAG.
+     */
+    private fun skip(parser: XmlPullParser) {
+        if (parser.eventType != XmlPullParser.START_TAG) {
+            throw IllegalStateException("skip() called when not at START_TAG (eventType=${parser.eventType})")
+        }
+        skipToEndTag(parser)
     }
 
     private fun parseDate(dateStr: String): Long {
