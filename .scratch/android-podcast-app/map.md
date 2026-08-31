@@ -23,6 +23,7 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 - [02-atomic-download-engine-and-worker](./issues/02-atomic-download-engine-and-worker.md): OkHttp atomic `.part` download engine, Content-Length & stream integrity checks, and WorkManager network constraint worker.
 - [03-rss-parser-and-directory-search](./issues/03-rss-parser-and-directory-search.md): XmlPullParser RSS/Atom engine, iTunes Search API client, OPML import, and FeedManager auto-download triggers.
 - [04-media3-audio-playback-service-and-queue](./issues/04-media3-audio-playback-service-and-queue.md): Media3 ExoPlayer service, single-queue mechanics, position persistence, completion cleanup, and zero-fade sleep timer.
+- [05-compose-ui-and-regex-auto-download](./issues/05-compose-ui-and-regex-auto-download.md): Jetpack Compose text-first UI, bottom player sheet, sleep timer modal, auto-download regex dialog, OPML import, and intent filter deep linking.
 
 ## Not yet specified
 
