@@ -33,6 +33,10 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 - [12-github-ci-release-pipeline](./issues/12-github-ci-release-pipeline.md): GitHub Actions CI workflow to build release APKs and publish GitHub Releases on tags.
 - [13-core-user-flows-test-suite](./issues/13-core-user-flows-test-suite.md): Fast local Robolectric/Compose UI tests + real Android Emulator CI runner.
 - [14-weekly-dependency-and-security-cron](./issues/14-weekly-dependency-and-security-cron.md): Weekly dependency update cron enforcing 7-day quarantine with automated issue alerts.
+- [15-gradle-dependency-update-plugin](./issues/15-gradle-dependency-update-plugin.md): Gradle dependency update plugin and real repository version resolution.
+- [16-media-output-switcher-headphone-button](./issues/16-media-output-switcher-headphone-button.md): Headphone icon on mini-player and expanded player opening Android native media output switcher.
+- [17-background-playback-foreground-service-and-wakelock](./issues/17-background-playback-foreground-service-and-wakelock.md): Proper Media3 foreground service lifecycle, ExoPlayer network wake lock, and battery optimization settings.
+- [18-bluetooth-headset-media-controls](./issues/18-bluetooth-headset-media-controls.md): MediaSession registration, MEDIA_BUTTON receiver, Bluetooth play/pause, and podcast 30s/15s skip controls.
 
 ## Not yet specified
 
