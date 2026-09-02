@@ -114,6 +114,9 @@ esac
 
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
+if "$cygwin" || "$msys" ; then
+    [ -n "$JAVA_HOME" ] && JAVA_HOME=$( cygpath --unix "$JAVA_HOME" )
+fi
 
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
