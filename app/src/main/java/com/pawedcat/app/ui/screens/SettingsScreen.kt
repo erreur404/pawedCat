@@ -347,7 +347,7 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            "Version 1.0.0 (Native Kotlin + Jetpack Compose + Media3)",
+                            "Version 1.1.0 (Native Kotlin + Jetpack Compose + Media3)",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
