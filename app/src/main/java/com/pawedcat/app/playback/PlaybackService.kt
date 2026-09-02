@@ -2,11 +2,13 @@ package com.pawedcat.app.playback
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.pawedcat.app.ServiceLocator
+import com.pawedcat.app.ui.MainActivity
 
 class PlaybackService : MediaSessionService() {
 
@@ -26,9 +28,31 @@ class PlaybackService : MediaSessionService() {
         val player = playbackManager.getPlayer()
 
         if (player != null) {
-            mediaSession = MediaSession.Builder(this, player).build()
+            val sessionActivityIntent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
+            val sessionActivityPendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                sessionActivityIntent,
+                pendingIntentFlags
+            )
+
+            mediaSession = MediaSession.Builder(this, player)
+                .setSessionActivity(sessionActivityPendingIntent)
+                .build()
         }
     }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return super.onStartCommand(intent, flags, startId)
+    }
+
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         return mediaSession

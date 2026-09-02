@@ -1,7 +1,11 @@
 package com.pawedcat.app.playback
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.net.wifi.WifiManager
+import android.os.Build
+import android.os.PowerManager
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -35,6 +39,26 @@ class AudioPlaybackManager(
     private val queueRepo = serviceLocator.queueRepository
     private val podcastRepo = serviceLocator.podcastRepository
 
+    private val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+    private val wakeLock: PowerManager.WakeLock? = try {
+        powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "PawedCat:PlaybackWakeLock")?.apply {
+            setReferenceCounted(false)
+        }
+    } catch (_: Exception) { null }
+
+    private val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+    private val wifiLock: WifiManager.WifiLock? = try {
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+        } else {
+            @Suppress("DEPRECATION")
+            WifiManager.WIFI_MODE_FULL
+        }
+        wifiManager?.createWifiLock(mode, "PawedCat:PlaybackWifiLock")?.apply {
+            setReferenceCounted(false)
+        }
+    } catch (_: Exception) { null }
+
     private var exoPlayer: ExoPlayer? = null
     private var loudnessEnhancer: android.media.audiofx.LoudnessEnhancer? = null
     private var progressTrackingJob: Job? = null
@@ -48,8 +72,11 @@ class AudioPlaybackManager(
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _playbackState.update { it.copy(isPlaying = isPlaying) }
             if (isPlaying) {
+                ensureServiceRunning()
+                acquireLocks()
                 startProgressTracker()
             } else {
+                releaseLocks()
                 stopProgressTracker()
             }
         }
@@ -89,10 +116,43 @@ class AudioPlaybackManager(
         exoPlayer = ExoPlayer.Builder(context)
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
+            .setWakeMode(C.WAKE_MODE_NETWORK)
+            .setSeekForwardIncrementMs(30000L)
+            .setSeekBackIncrementMs(15000L)
             .build().apply {
                 addListener(playerListener)
             }
     }
+
+    private fun ensureServiceRunning() {
+        try {
+            val intent = Intent(context, PlaybackService::class.java)
+            context.startService(intent)
+        } catch (_: Exception) {}
+    }
+
+    private fun acquireLocks() {
+        try {
+            if (wakeLock?.isHeld == false) {
+                wakeLock.acquire(12 * 60 * 60 * 1000L) // 12h safety timeout
+            }
+            if (wifiLock?.isHeld == false) {
+                wifiLock.acquire()
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun releaseLocks() {
+        try {
+            if (wakeLock?.isHeld == true) {
+                wakeLock.release()
+            }
+            if (wifiLock?.isHeld == true) {
+                wifiLock.release()
+            }
+        } catch (_: Exception) {}
+    }
+
 
     fun getPlayer(): ExoPlayer? = exoPlayer
 
@@ -432,6 +492,7 @@ class AudioPlaybackManager(
     fun release() {
         stopProgressTracker()
         cancelSleepTimer()
+        releaseLocks()
         try {
             loudnessEnhancer?.release()
         } catch (_: Exception) {}
@@ -440,3 +501,4 @@ class AudioPlaybackManager(
         exoPlayer = null
     }
 }
+
