@@ -18,7 +18,9 @@ import androidx.compose.ui.unit.dp
 import com.pawedcat.app.ServiceLocator
 import com.pawedcat.app.playback.AudioPlaybackManager
 import com.pawedcat.app.playback.model.SleepTimerMode
+import com.pawedcat.app.ui.util.AudioOutputUtils
 import com.pawedcat.app.ui.util.ShareUtils
+
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,6 +87,16 @@ fun NowPlayingBottomBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
+                    IconButton(
+                        onClick = { AudioOutputUtils.openAudioOutputSwitcher(context) }
+                    ) {
+                        Icon(
+                            Icons.Default.Headphones,
+                            contentDescription = "Audio output device",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
                     IconButton(onClick = { playbackManager.skipBackward(15) }) {
                         Icon(Icons.Default.Replay10, contentDescription = "Back 15s")
                     }
@@ -163,6 +175,12 @@ fun NowPlayingBottomBar(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(
+                        onClick = { AudioOutputUtils.openAudioOutputSwitcher(context) }
+                    ) {
+                        Icon(Icons.Default.Headphones, contentDescription = "Audio Output Device", modifier = Modifier.size(28.dp))
+                    }
+
                     IconButton(
                         onClick = {
                             coroutineScope.launch {
