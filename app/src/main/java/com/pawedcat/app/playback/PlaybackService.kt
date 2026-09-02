@@ -3,10 +3,13 @@ package com.pawedcat.app.playback
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+
 import android.content.Intent
 import android.os.Build
+import androidx.media3.common.Player
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionResult
 import com.pawedcat.app.ServiceLocator
 import com.pawedcat.app.ui.MainActivity
 
@@ -43,11 +46,34 @@ class PlaybackService : MediaSessionService() {
                 pendingIntentFlags
             )
 
+            val sessionCallback = object : MediaSession.Callback {
+                override fun onPlayerCommandRequest(
+                    session: MediaSession,
+                    controller: MediaSession.ControllerInfo,
+                    playerCommand: Int
+                ): Int {
+                    when (playerCommand) {
+                        Player.COMMAND_SEEK_TO_NEXT, Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM -> {
+                            playbackManager.skipForward(30)
+                            return SessionResult.RESULT_SUCCESS
+                        }
+                        Player.COMMAND_SEEK_TO_PREVIOUS, Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> {
+                            playbackManager.skipBackward(15)
+                            return SessionResult.RESULT_SUCCESS
+                        }
+                        else -> return super.onPlayerCommandRequest(session, controller, playerCommand)
+                    }
+                }
+            }
+
             mediaSession = MediaSession.Builder(this, player)
                 .setSessionActivity(sessionActivityPendingIntent)
+                .setCallback(sessionCallback)
                 .build()
         }
     }
+
+
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return super.onStartCommand(intent, flags, startId)
