@@ -31,3 +31,8 @@ _Avoid_: Auto-pause, bed timer, sleep mode
 **Completion Cleanup**:
 The automatic deletion of an Episode's local audio file once playback reaches 99% progress or when manually marked played.
 _Avoid_: Auto-purge, garbage collection, storage cleaner
+
+**Stream-to-Download Hot-Swap**:
+The automatic background download of an undownloaded Episode upon playback start, transitioning the active playback source from the remote enclosure URL to the local audio file at the exact millisecond position upon download completion.
+_Avoid_: Progressive caching, buffer saving, download-and-play, dual streaming
+

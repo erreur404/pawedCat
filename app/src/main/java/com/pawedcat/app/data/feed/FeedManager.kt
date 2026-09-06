@@ -27,7 +27,7 @@ class FeedManager(
     private val opmlParser = OpmlParser()
 
     companion object {
-        private const val USER_AGENT = "PawedCat/1.0 (Android; Lightweight Podcast Client)"
+        private val USER_AGENT = "PawedCat/${com.pawedcat.app.BuildConfig.VERSION_NAME} (Android; Lightweight Podcast Client)"
 
         private fun defaultClient(): OkHttpClient {
             return OkHttpClient.Builder()

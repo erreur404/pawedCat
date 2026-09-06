@@ -26,6 +26,12 @@ class PlaybackService : MediaSessionService() {
         super.onCreate()
         createNotificationChannel()
 
+        val notificationProvider = androidx.media3.session.DefaultMediaNotificationProvider.Builder(this)
+            .setChannelId(CHANNEL_ID)
+            .setNotificationId(NOTIFICATION_ID)
+            .build()
+        setMediaNotificationProvider(notificationProvider)
+
         val serviceLocator = ServiceLocator.getInstance(applicationContext)
         val playbackManager = serviceLocator.playbackManager
         val player = playbackManager.getPlayer()
@@ -47,6 +53,7 @@ class PlaybackService : MediaSessionService() {
             )
 
             val sessionCallback = object : MediaSession.Callback {
+                @Deprecated("Deprecated in Java")
                 override fun onPlayerCommandRequest(
                     session: MediaSession,
                     controller: MediaSession.ControllerInfo,
@@ -54,10 +61,14 @@ class PlaybackService : MediaSessionService() {
                 ): Int {
                     when (playerCommand) {
                         Player.COMMAND_SEEK_TO_NEXT, Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM -> {
+                            playbackManager.nextInQueue()
+                            return SessionResult.RESULT_SUCCESS
+                        }
+                        Player.COMMAND_SEEK_FORWARD -> {
                             playbackManager.skipForward(30)
                             return SessionResult.RESULT_SUCCESS
                         }
-                        Player.COMMAND_SEEK_TO_PREVIOUS, Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> {
+                        Player.COMMAND_SEEK_BACK, Player.COMMAND_SEEK_TO_PREVIOUS, Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> {
                             playbackManager.skipBackward(15)
                             return SessionResult.RESULT_SUCCESS
                         }
@@ -93,7 +104,6 @@ class PlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         mediaSession?.run {
-            player.release()
             release()
             mediaSession = null
         }

@@ -63,6 +63,8 @@ class AudioPlaybackManager(
     private var loudnessEnhancer: android.media.audiofx.LoudnessEnhancer? = null
     private var progressTrackingJob: Job? = null
     private var sleepTimerJob: Job? = null
+    private var transientFocusTimeoutJob: Job? = null
+    private var downloadObservationJob: Job? = null
 
     private val _playbackState = MutableStateFlow(CurrentPlaybackState())
     val playbackState: StateFlow<CurrentPlaybackState> = _playbackState.asStateFlow()
@@ -78,6 +80,29 @@ class AudioPlaybackManager(
             } else {
                 releaseLocks()
                 stopProgressTracker()
+            }
+        }
+
+        override fun onPlaybackSuppressionReasonChanged(playbackSuppressionReason: Int) {
+            if (playbackSuppressionReason == Player.PLAYBACK_SUPPRESSION_REASON_TRANSIENT_AUDIO_FOCUS_LOSS) {
+                // Audio interrupted (e.g. by phone call, navigation, or another media app)
+                // Start 60-second watchdog timer
+                transientFocusTimeoutJob?.cancel()
+                transientFocusTimeoutJob = scope.launch {
+                    delay(60_000L)
+                    // 60 seconds elapsed without focus restoration: execute hard pause and abandon focus
+                    exoPlayer?.pause()
+                    val currentPos = exoPlayer?.currentPosition ?: 0L
+                    _playbackState.value.currentEpisode?.let { ep ->
+                        episodeRepo.updatePlaybackPosition(ep.id, currentPos, false)
+                    }
+                    releaseLocks()
+                    stopProgressTracker()
+                }
+            } else if (playbackSuppressionReason == Player.PLAYBACK_SUPPRESSION_REASON_NONE) {
+                // Focus restored within the 60s window
+                transientFocusTimeoutJob?.cancel()
+                transientFocusTimeoutJob = null
             }
         }
 
@@ -127,7 +152,11 @@ class AudioPlaybackManager(
     private fun ensureServiceRunning() {
         try {
             val intent = Intent(context, PlaybackService::class.java)
-            context.startService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
         } catch (_: Exception) {}
     }
 
@@ -241,6 +270,8 @@ class AudioPlaybackManager(
     }
 
     fun togglePlayPause() {
+        transientFocusTimeoutJob?.cancel()
+        transientFocusTimeoutJob = null
         exoPlayer?.let { player ->
             if (player.isPlaying) {
                 player.pause()
@@ -300,6 +331,14 @@ class AudioPlaybackManager(
         val episode = episodeRepo.getEpisodeById(episodeId) ?: return
         val player = exoPlayer ?: return
 
+        transientFocusTimeoutJob?.cancel()
+        transientFocusTimeoutJob = null
+
+        val isAlreadyDownloaded = episode.localFilePath?.let { path ->
+            val file = File(path)
+            file.exists() && file.length() > 0
+        } ?: false
+
         val mediaUri = getPlayableUri(episode)
         val metadata = MediaMetadata.Builder()
             .setTitle(episode.title)
@@ -339,6 +378,65 @@ class AudioPlaybackManager(
                 currentPositionMs = resumePos,
                 durationMs = episode.durationMs
             )
+        }
+
+        // Stream-to-Download Hot-Swap: if episode is not yet downloaded, start concurrent download and observe
+        downloadObservationJob?.cancel()
+        if (!isAlreadyDownloaded) {
+            scope.launch {
+                try {
+                    serviceLocator.downloadManager.enqueueDownload(episode.id)
+                } catch (_: Exception) {}
+            }
+
+            downloadObservationJob = scope.launch {
+                episodeRepo.getEpisodeByIdFlow(episode.id).collect { updatedEp ->
+                    if (updatedEp != null && updatedEp.downloadStatus == com.pawedcat.app.data.local.entity.DownloadStatus.DOWNLOADED && updatedEp.localFilePath != null) {
+                        val file = File(updatedEp.localFilePath)
+                        if (file.exists() && file.length() > 0) {
+                            performStreamToDownloadHotSwap(updatedEp, file)
+                            downloadObservationJob?.cancel()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun performStreamToDownloadHotSwap(updatedEpisode: EpisodeEntity, file: File) {
+        val player = exoPlayer ?: return
+        if (_playbackState.value.currentEpisode?.id != updatedEpisode.id) return
+
+        val currentPos = player.currentPosition
+        val wasPlaying = player.isPlaying || player.playWhenReady
+        val localUri = Uri.fromFile(file)
+
+        // Check if player is already playing from this local URI
+        val currentMediaItem = player.currentMediaItem
+        if (currentMediaItem?.localConfiguration?.uri == localUri) {
+            _playbackState.update { it.copy(currentEpisode = updatedEpisode) }
+            return
+        }
+
+        val metadata = MediaMetadata.Builder()
+            .setTitle(updatedEpisode.title)
+            .setDisplayTitle(updatedEpisode.title)
+            .build()
+
+        val newMediaItem = MediaItem.Builder()
+            .setUri(localUri)
+            .setMediaId(updatedEpisode.id.toString())
+            .setMediaMetadata(metadata)
+            .build()
+
+        player.setMediaItem(newMediaItem, currentPos)
+        player.prepare()
+        if (wasPlaying) {
+            player.play()
+        }
+
+        _playbackState.update {
+            it.copy(currentEpisode = updatedEpisode)
         }
     }
 
@@ -492,6 +590,10 @@ class AudioPlaybackManager(
     fun release() {
         stopProgressTracker()
         cancelSleepTimer()
+        transientFocusTimeoutJob?.cancel()
+        transientFocusTimeoutJob = null
+        downloadObservationJob?.cancel()
+        downloadObservationJob = null
         releaseLocks()
         try {
             loudnessEnhancer?.release()

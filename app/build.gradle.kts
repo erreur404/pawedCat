@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val appVersionName: String = providers.gradleProperty("app.version.name").getOrElse("1.1.0")
+val appVersionCode: Int = providers.gradleProperty("app.version.code").getOrElse("1").toInt()
+
 android {
     namespace = "com.pawedcat.app"
     compileSdk = 35
@@ -13,8 +16,8 @@ android {
         applicationId = "com.pawedcat.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -42,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     testOptions {
         unitTests {

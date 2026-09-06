@@ -32,7 +32,7 @@ class PodcastDirectoryService(
 
         val request = Request.Builder()
             .url(SEARCH_URL + encodedQuery)
-            .header("User-Agent", "PawedCat/1.0 (Android)")
+            .header("User-Agent", "PawedCat/${com.pawedcat.app.BuildConfig.VERSION_NAME} (Android)")
             .build()
 
         try {

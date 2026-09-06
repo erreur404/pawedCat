@@ -1,12 +1,17 @@
 package com.pawedcat.app.ui
 
+import android.Manifest
 import android.app.SearchManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.pawedcat.app.PawedCatApp
 import com.pawedcat.app.ServiceLocator
@@ -16,8 +21,17 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // Permission result handled (Media3 notification will be shown if granted)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Request runtime notification permission on Android 13+ (API 33+) for persistent media notification
+        checkNotificationPermission()
 
         val app = application as PawedCatApp
         val serviceLocator = app.serviceLocator
@@ -90,5 +104,17 @@ class MainActivity : ComponentActivity() {
             }
         }
         return null
+    }
+
+    private fun checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
     }
 }
