@@ -65,6 +65,9 @@ class AudioPlaybackManager(
     private var sleepTimerJob: Job? = null
     private var transientFocusTimeoutJob: Job? = null
     private var downloadObservationJob: Job? = null
+    @Volatile
+    var isHotSwapping: Boolean = false
+        internal set
 
     private val _playbackState = MutableStateFlow(CurrentPlaybackState())
     val playbackState: StateFlow<CurrentPlaybackState> = _playbackState.asStateFlow()
@@ -78,8 +81,10 @@ class AudioPlaybackManager(
                 acquireLocks()
                 startProgressTracker()
             } else {
-                releaseLocks()
-                stopProgressTracker()
+                if (!isHotSwapping) {
+                    releaseLocks()
+                    stopProgressTracker()
+                }
             }
         }
 
@@ -429,10 +434,15 @@ class AudioPlaybackManager(
             .setMediaMetadata(metadata)
             .build()
 
-        player.setMediaItem(newMediaItem, currentPos)
-        player.prepare()
-        if (wasPlaying) {
-            player.play()
+        isHotSwapping = true
+        try {
+            player.setMediaItem(newMediaItem, currentPos)
+            player.prepare()
+            if (wasPlaying) {
+                player.play()
+            }
+        } finally {
+            isHotSwapping = false
         }
 
         _playbackState.update {

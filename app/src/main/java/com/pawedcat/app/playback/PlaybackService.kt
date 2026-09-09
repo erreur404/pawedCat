@@ -77,19 +77,24 @@ class PlaybackService : MediaSessionService() {
                 }
             }
 
-            mediaSession = MediaSession.Builder(this, player)
+            val session = MediaSession.Builder(this, player)
                 .setSessionActivity(sessionActivityPendingIntent)
                 .setCallback(sessionCallback)
                 .build()
+            mediaSession = session
+            addSession(session)
         }
     }
 
-
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        mediaSession?.let { session ->
+            val player = session.player
+            if (player.playWhenReady && player.mediaItemCount > 0) {
+                onUpdateNotification(session, true)
+            }
+        }
         return super.onStartCommand(intent, flags, startId)
     }
-
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         return mediaSession
@@ -104,6 +109,7 @@ class PlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         mediaSession?.run {
+            removeSession(this)
             release()
             mediaSession = null
         }

@@ -5,8 +5,8 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val appVersionName: String = providers.gradleProperty("app.version.name").getOrElse("1.1.0")
-val appVersionCode: Int = providers.gradleProperty("app.version.code").getOrElse("1").toInt()
+val appVersionName: String = providers.gradleProperty("app.version.name").getOrElse("1.2.0")
+val appVersionCode: Int = providers.gradleProperty("app.version.code").getOrElse("2").toInt()
 
 android {
     namespace = "com.pawedcat.app"

@@ -88,7 +88,17 @@ class AudioPlaybackManagerTest {
         assertNotNull(ep)
         assertEquals(DownloadStatus.DOWNLOADED, ep?.downloadStatus)
         assertEquals(tempAudioFile.absolutePath, ep?.localFilePath)
+        assertFalse("isHotSwapping should be false after completion", playbackManager.isHotSwapping)
 
         tempAudioFile.delete()
+    }
+
+    @Test
+    fun playbackService_lifecycle_createsAndDestroysCleanly() {
+        val controller = org.robolectric.Robolectric.buildService(PlaybackService::class.java)
+        val service = controller.create().get()
+        assertNotNull("PlaybackService should initialize and create MediaSession", service)
+        controller.startCommand(0, 0)
+        controller.destroy()
     }
 }
