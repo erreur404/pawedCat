@@ -37,6 +37,8 @@ A complete, production-ready, lightweight native Android podcast app (Kotlin + J
 - [16-media-output-switcher-headphone-button](./issues/16-media-output-switcher-headphone-button.md): Headphone icon on mini-player and expanded player opening Android native media output switcher.
 - [17-background-playback-foreground-service-and-wakelock](./issues/17-background-playback-foreground-service-and-wakelock.md): Proper Media3 foreground service lifecycle, ExoPlayer network wake lock, and battery optimization settings.
 - [18-bluetooth-headset-media-controls](./issues/18-bluetooth-headset-media-controls.md): MediaSession registration, MEDIA_BUTTON receiver, Bluetooth play/pause, and podcast 30s/15s skip controls.
+- [19-android14-background-playback-regression-and-session-lifecycle](./issues/19-android14-background-playback-regression-and-session-lifecycle.md): Foreground service lifecycle fixes and hot-swap lock protection for Android 14.
+- [20-apple-podcast-search-and-feed-resolution](./issues/20-apple-podcast-search-and-feed-resolution.md): Apple Podcasts feed resolution for shows missing search JSON feed URLs (e.g. France Inter's "La Terre au carré"), direct Apple link subscriptions, and Fyyd fallback directory.
 
 ## Not yet specified
 

@@ -37,9 +37,19 @@ class FeedManager(
         }
     }
 
+    suspend fun resolveEffectiveUrl(rawUrl: String): String {
+        val cleanUrl = rawUrl.trim()
+        return if (directoryService.isApplePodcastsUrl(cleanUrl)) {
+            directoryService.resolveApplePodcastFeedUrl(cleanUrl) ?: cleanUrl
+        } else {
+            cleanUrl
+        }
+    }
+
     suspend fun fetchFeed(feedUrl: String): Result<ParsedFeed> = withContext(Dispatchers.IO) {
+        val effectiveUrl = resolveEffectiveUrl(feedUrl)
         val request = Request.Builder()
-            .url(feedUrl.trim())
+            .url(effectiveUrl)
             .header("User-Agent", USER_AGENT)
             .build()
 
@@ -50,7 +60,7 @@ class FeedManager(
             }
 
             val body = response.body ?: return@withContext Result.failure(Exception("Empty feed response"))
-            val parsedFeed = rssParser.parse(body.byteStream(), feedUrl.trim())
+            val parsedFeed = rssParser.parse(body.byteStream(), effectiveUrl)
             Result.success(parsedFeed)
         } catch (e: Exception) {
             Result.failure(e)
@@ -58,7 +68,7 @@ class FeedManager(
     }
 
     suspend fun subscribeToFeed(feedUrl: String): Result<PodcastEntity> = withContext(Dispatchers.IO) {
-        val cleanUrl = feedUrl.trim()
+        val cleanUrl = resolveEffectiveUrl(feedUrl)
         val existing = podcastRepo.getPodcastByFeedUrl(cleanUrl)
         if (existing != null) {
             return@withContext Result.success(existing)
