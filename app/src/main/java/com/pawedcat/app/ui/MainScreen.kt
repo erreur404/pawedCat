@@ -2,10 +2,12 @@ package com.pawedcat.app.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Podcasts
-import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Settings
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -22,9 +24,10 @@ import com.pawedcat.app.ui.screens.SettingsScreen
 enum class MainTab(val title: String, val icon: ImageVector) {
     PODCASTS("Podcasts", Icons.Default.Podcasts),
     DOWNLOADS("Downloads", Icons.Default.DownloadDone),
-    QUEUE("Queue", Icons.Default.QueueMusic),
+    QUEUE("Queue", Icons.AutoMirrored.Filled.QueueMusic),
     SETTINGS("Settings", Icons.Default.Settings)
 }
+
 
 @Composable
 fun MainScreen(

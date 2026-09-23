@@ -53,7 +53,7 @@ fun AddPodcastDialog(
                     Tab(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
-                        text = { Text("RSS URL") }
+                        text = { Text("RSS / Link") }
                     )
                 }
 
@@ -166,8 +166,8 @@ fun AddPodcastDialog(
                     OutlinedTextField(
                         value = customUrl,
                         onValueChange = { customUrl = it },
-                        label = { Text("Feed URL") },
-                        placeholder = { Text("https://example.com/feed.xml") },
+                        label = { Text("Feed or Apple Podcasts URL") },
+                        placeholder = { Text("https://example.com/feed.xml or Apple link") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = false,
                         maxLines = 3

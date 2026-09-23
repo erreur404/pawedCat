@@ -21,7 +21,7 @@ class AtomicFileDownloader(
     companion object {
         private const val BUFFER_SIZE = 32 * 1024 // 32 KB buffer
         private const val MIN_AUDIO_SIZE_BYTES = 10 * 1024L // 10 KB minimum
-        private const val USER_AGENT = "PawedCat/1.0 (Android; Lightweight Podcast Client)"
+        private val USER_AGENT = "PawedCat/${com.pawedcat.app.BuildConfig.VERSION_NAME} (Android; Lightweight Podcast Client)"
 
         fun defaultOkHttpClient(): OkHttpClient {
             return OkHttpClient.Builder()
