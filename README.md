@@ -10,6 +10,21 @@ A lightweight, distraction-free podcast player for Android. Built with a simple 
 
 ---
 
+## 📲 Download & Installation
+
+You can download and install PawedCat directly onto your Android device:
+
+- **[⬇️ Direct Download Latest APK](https://github.com/erreur404/pawedCat/releases/latest/download/PawedCat.apk)** *(Always points to the newest release)*
+- **[📦 View All Releases & Changelogs](https://github.com/erreur404/pawedCat/releases)**
+
+#### Quick Install:
+1. Tap the **[Direct Download](https://github.com/erreur404/pawedCat/releases/latest/download/PawedCat.apk)** link above on your Android phone.
+2. When the download finishes, tap the notification or open `PawedCat.apk` from your **Downloads** folder.
+3. If Android displays *"For your security, your phone is not allowed to install unknown apps from this source"*, tap **Settings** and toggle **Allow from this source**.
+4. Tap **Install** and launch **PawedCat**!
+
+---
+
 ### Features
 
 1. **Audio & Playback**: Play queue, sleep timer, variable playback speed.
